@@ -85,6 +85,11 @@ def create_parser() -> argparse.ArgumentParser:
 
 def run_analyze_cmd(args: argparse.Namespace) -> int:
     """Execute single text analyze command."""
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8")
+        except Exception:  # noqa: BLE001
+            pass
     try:
         config = load_config()
         config.prompt.mode = args.mode

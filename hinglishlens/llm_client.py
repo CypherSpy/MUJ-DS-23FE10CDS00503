@@ -163,7 +163,7 @@ class GeminiClient(LLMClient):
             )
         except Exception as e:
             err_msg = str(e).lower()
-            if any(k in err_msg for k in ["429", "rate limit", "quota", "timeout", "500", "503", "unavailable", "connection"]):
+            if any(k in err_msg for k in ["429", "rate limit", "quota", "resource_exhausted", "resourceexhausted", "timeout", "500", "503", "unavailable", "connection"]):
                 raise TransientLLMError(f"Gemini transient error: {e}") from e
             if any(k in err_msg for k in ["400", "401", "403", "invalid", "unauthorized", "api_key"]):
                 raise PermanentLLMError(f"Gemini permanent error: {e}") from e
