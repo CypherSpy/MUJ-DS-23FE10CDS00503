@@ -6,6 +6,7 @@ language identification (LID), and operational metrics.
 
 import json
 import logging
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,9 @@ from hinglishlens.analyzer import HinglishAnalyzer
 from hinglishlens.baseline import predict_baseline, train_baseline
 from hinglishlens.config import Config, load_config
 from hinglishlens.llm_client import PermanentLLMError, get_client
+
+# Suppress harmless sklearn metric warnings
+warnings.filterwarnings("ignore")
 
 logger = logging.getLogger(__name__)
 

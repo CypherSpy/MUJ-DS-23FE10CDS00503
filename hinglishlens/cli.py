@@ -88,7 +88,7 @@ def run_analyze_cmd(args: argparse.Namespace) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         try:
             sys.stdout.reconfigure(encoding="utf-8")
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
     try:
         config = load_config()
