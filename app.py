@@ -288,7 +288,7 @@ def main():
         )
 
         batch_input_mode = st.radio(
-            "Batch Source", ["Paste Lines", "Upload CSV"], inline=True
+            "Batch Source", ["Paste Lines", "Upload CSV"], horizontal=True
         )
 
         batch_texts = []
