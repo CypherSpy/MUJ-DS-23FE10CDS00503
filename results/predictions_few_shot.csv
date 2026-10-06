@@ -1,0 +1,6 @@
+text,label,predicted_label,confidence,sarcasm,translation_en,error
+aaj ki morning coffee ke sath weather ekdum perfect hai ☕,positive,positive,0.98,False,The weather is just perfect with this morning's coffee ☕,
+bhai flipkart sale me mast discount mila,positive,positive,0.95,False,"Bro, got an awesome discount in the Flipkart sale",
+movie directional work and screenplay super badiya tha,positive,positive,0.95,False,The movie's directional work and screenplay were super great.,
+"khana bohot yummy tha, full family enjoyed",positive,positive,0.95,False,"The food was very yummy, the whole family enjoyed it.",
+phone camera daylight photos me clarity unbelievable hai,positive,positive,0.95,False,The clarity in daylight photos of the phone camera is unbelievable.,

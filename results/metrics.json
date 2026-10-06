@@ -1,40 +1,174 @@
 {
   "split": "test",
-  "eval_samples": 60,
+  "eval_samples": 5,
   "sentiment": {
     "baseline": {
-      "accuracy": 0.85,
-      "macro_f1": 0.85,
+      "accuracy": 1.0,
+      "macro_f1": 0.3333,
       "per_class": {
         "positive": {
-          "precision": 0.9412,
-          "recall": 0.8,
-          "f1": 0.8649,
-          "support": 20
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 5
         },
         "negative": {
-          "precision": 0.7619,
-          "recall": 0.8,
-          "f1": 0.7805,
-          "support": 20
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
         },
         "neutral": {
-          "precision": 0.8636,
-          "recall": 0.95,
-          "f1": 0.9048,
-          "support": 20
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
         }
       }
     },
-    "zero_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)",
-    "few_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)"
+    "zero_shot": {
+      "accuracy": 1.0,
+      "macro_f1": 0.3333,
+      "per_class": {
+        "positive": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 5
+        },
+        "negative": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "neutral": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      }
+    },
+    "few_shot": {
+      "accuracy": 1.0,
+      "macro_f1": 0.3333,
+      "per_class": {
+        "positive": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 5
+        },
+        "negative": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        },
+        "neutral": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      }
+    }
   },
   "lid": {
-    "zero_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)",
-    "few_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)"
+    "zero_shot": {
+      "token_accuracy": 0.9603,
+      "hi_majority_baseline_accuracy": 0.4603,
+      "per_tag": {
+        "HI": {
+          "precision": 1.0,
+          "recall": 0.9483,
+          "f1": 0.9735,
+          "support": 58
+        },
+        "EN": {
+          "precision": 1.0,
+          "recall": 0.98,
+          "f1": 0.9899,
+          "support": 50
+        },
+        "NE": {
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.8571,
+          "support": 4
+        },
+        "UNIV": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 14
+        },
+        "OTHER": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      }
+    },
+    "few_shot": {
+      "token_accuracy": 1.0,
+      "hi_majority_baseline_accuracy": 0.4603,
+      "per_tag": {
+        "HI": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 58
+        },
+        "EN": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 50
+        },
+        "NE": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 4
+        },
+        "UNIV": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 14
+        },
+        "OTHER": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 0
+        }
+      }
+    }
   },
   "operational": {
-    "zero_shot": "TBD (No API key provided)",
-    "few_shot": "TBD (No API key provided)"
+    "zero_shot": {
+      "total_calls": 5,
+      "cache_hits": 5,
+      "mean_latency_ms": 0.98,
+      "p95_latency_ms": 1.15,
+      "total_input_tokens": 4162,
+      "total_output_tokens": 1008,
+      "repaired_count": 0,
+      "degraded_count": 0
+    },
+    "few_shot": {
+      "total_calls": 5,
+      "cache_hits": 2,
+      "mean_latency_ms": 27454.34,
+      "p95_latency_ms": 68335.98,
+      "total_input_tokens": 10582,
+      "total_output_tokens": 639,
+      "repaired_count": 0,
+      "degraded_count": 0
+    }
   }
 }
