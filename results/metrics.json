@@ -1,0 +1,40 @@
+{
+  "split": "test",
+  "eval_samples": 60,
+  "sentiment": {
+    "baseline": {
+      "accuracy": 0.85,
+      "macro_f1": 0.85,
+      "per_class": {
+        "positive": {
+          "precision": 0.9412,
+          "recall": 0.8,
+          "f1": 0.8649,
+          "support": 20
+        },
+        "negative": {
+          "precision": 0.7619,
+          "recall": 0.8,
+          "f1": 0.7805,
+          "support": 20
+        },
+        "neutral": {
+          "precision": 0.8636,
+          "recall": 0.95,
+          "f1": 0.9048,
+          "support": 20
+        }
+      }
+    },
+    "zero_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)",
+    "few_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)"
+  },
+  "lid": {
+    "zero_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)",
+    "few_shot": "TBD (No API key provided - run python -m hinglishlens evaluate with API key)"
+  },
+  "operational": {
+    "zero_shot": "TBD (No API key provided)",
+    "few_shot": "TBD (No API key provided)"
+  }
+}

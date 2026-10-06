@@ -1,0 +1,61 @@
+text,label,predicted_label
+aaj ki morning coffee ke sath weather ekdum perfect hai ☕,positive,positive
+bhai flipkart sale me mast discount mila,positive,positive
+movie directional work and screenplay super badiya tha,positive,positive
+"khana bohot yummy tha, full family enjoyed",positive,positive
+phone camera daylight photos me clarity unbelievable hai,positive,positive
+"delivery boy reached in 15 mins, super quick!",positive,positive
+"ye concert lifetime memory ban gaya, epic energy 🎉",positive,positive
+hotel room setup and view was amazing,positive,negative
+"bhai ne exam clear kar liya, super happy news",positive,positive
+"customer care team resolved query instantly, top rating",positive,positive
+"laptop boots in 5 seconds, extremely fast SSD",positive,negative
+iss cafe ka ambiance and playlist bohot chill hai,positive,positive
+shirt fitting and fabric quality is outstanding,positive,positive
+cricket match me india ki victory super exciting thi,positive,positive
+driver drove smoothly and reached before time,positive,positive
+software update made interface much faster,positive,positive
+ye dessert dish ekdum lajawab thi,positive,positive
+doctor was very polite and explained treatment clearly,positive,negative
+earphones bass and treble balance is perfect,positive,positive
+"fast delivery and genuine product, highly satisfied",positive,negative
+"3 ghante se internet band hai, useless network",negative,negative
+khana ekdum tasteless aur stale bhej diya,negative,negative
+"worst customer support experience, no resolution provided",negative,negative
+"screen 2 din me automatic crack ho gayi, pathetic build",negative,negative
+"delivery delay of 5 days, seller not responding",negative,negative
+"movie total headache thi, money wasted",negative,negative
+cab booked thi lekin driver ne call cut karke cancel kar diya,negative,negative
+room me AC loud noise kar raha tha aur cooling zero,negative,negative
+"app keeps crashing on checkout page, worst bug",negative,negative
+food item missing from delivery parcel 😡,negative,neutral
+battery draining 20 percent per hour without use,negative,negative
+"shoes quality is very cheap, sole detached in 3 days",negative,negative
+flight delayed by 4 hours without any notification,negative,neutral
+"wah kya packaging hai, pure glass item ko break kar diya 👏",negative,negative
+"sound distorted at high volume, useless speaker",negative,negative
+refund request rejected without any valid explanation,negative,neutral
+hotel washroom water supply was not working,negative,negative
+"terrible experience at store, staff behaviour very arrogant",negative,negative
+train compartment was dirty and overcrowded,negative,negative
+keyboard keys malfunctioning right out of box,negative,positive
+kya kal office me working day hai ya holiday?,neutral,neutral
+train arrival timing is 8:30 AM at platform 2,neutral,neutral
+parcel location showing in transit near delhi hub,neutral,neutral
+kya is smart watch me heart rate sensor hai?,neutral,neutral
+meeting call scheduled for 4 PM today,neutral,neutral
+exam center address is updated on admit card,neutral,neutral
+kya restaurant me outdoor seating available hai?,neutral,neutral
+bank branch working hours are 10 AM to 4 PM,neutral,neutral
+kya laptop box me HDMI cableIncluded hai?,neutral,neutral
+flight status is currently on time,neutral,neutral
+store opens at 10 AM every morning,neutral,neutral
+kya ye bus direct jaipur jayegi?,neutral,neutral
+order reference number is 987654321,neutral,neutral
+weather update predicts light rain in evening,neutral,neutral
+kya registration process me aadhaar card required hai?,neutral,neutral
+class notes shared on google drive folder,neutral,neutral
+next metro halt is Huda City Centre,neutral,neutral
+kya sunday ko clinic open hota hai?,neutral,neutral
+package dimensions are 30cm by 20cm,neutral,negative
+payment transaction id sent via SMS,neutral,neutral

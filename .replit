@@ -1,0 +1,10 @@
+modules = ["python-3.11"]
+run = "streamlit run app.py"
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["streamlit", "run", "app.py"]
+
+[[ports]]
+localPort = 8501
+externalPort = 80

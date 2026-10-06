@@ -1,0 +1,46 @@
+app:
+  name: HinglishLens
+  version: "1.0.0"
+
+llm:
+  provider: gemini            # gemini | openai | anthropic
+  models:                     # verify availability in your account; change if a name is retired
+    gemini: gemini-2.5-flash
+    openai: gpt-4o-mini
+    anthropic: claude-haiku-4-5-20251001
+  temperature: 0.0
+  max_output_tokens: 1500
+  timeout_s: 30
+  json_mode: true             # use native JSON mode where the provider supports it
+  retries:
+    max_attempts: 4
+    base_delay_s: 1.0
+    max_delay_s: 16.0
+    jitter: true
+  max_repair_attempts: 1      # re-ask once with the validation error if the JSON is invalid
+
+prompt:
+  file: prompts.yaml
+  mode: few_shot              # zero_shot | few_shot
+
+pipeline:
+  max_workers: 4              # thread pool size for batch mode (lower if you hit rate limits)
+  max_input_chars: 600        # longer inputs are truncated with a logged warning
+
+cache:
+  enabled: true
+  path: .cache/llm_cache.sqlite
+
+data:
+  train: data/sentiment_train.csv
+  test: data/sentiment_test.csv
+  lid_gold: data/lid_gold.jsonl
+  samples: data/sample_inputs.txt
+
+evaluation:
+  output_dir: results
+  seed: 42
+
+logging:
+  level: INFO
+  file: logs/hinglishlens.log
