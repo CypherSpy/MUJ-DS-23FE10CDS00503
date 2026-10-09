@@ -1,120 +1,222 @@
-# HinglishLens: Code-Mixed (Hinglish) Text Normalizer & Analyzer
+HinglishLens
+Code-Mixed (Hinglish) Text Normalizer & Analyzer powered by LLM APIs
+HinglishLens analyzes Hinglish, meaning Hindi written in Roman script and mixed with English, such as "yaar ye movie bakwaas thi but acting mast thi". A single LLM API call, wrapped in deterministic code for tokenization, validation and metrics, produces token-level language identification, text normalization, sentiment, emotion, sarcasm detection, English translation, and code-mixing metrics (CMI). It ships with a Streamlit app, a CLI, and an evaluation harness that compares zero-shot prompting, few-shot prompting and a classical TF-IDF baseline.
 
-HinglishLens is an end-to-end NLP framework and interactive Streamlit web application designed to analyze Hinglish (Hindi text written in Roman script mixed with English). By leveraging modern Large Language Models (LLMs) behind a provider-agnostic client abstraction alongside deterministic code-level post-processing, HinglishLens performs token-level language identification, SMS shorthand & spelling normalization, sentiment classification, emotion detection, sarcasm detection, English machine translation, and computes computational code-mixing metrics including the Code-Mixing Index (CMI) and switch points.
+<img width="938" height="434" alt="Screenshot 2026-10-09 145225" src="https://github.com/user-attachments/assets/100ed213-3d36-4461-b5e1-2e7907109cb1" />
+<img width="648" height="431" alt="Screenshot 2026-10-09 145241" src="https://github.com/user-attachments/assets/bbace130-88da-4707-90ee-5d995e89eb28" />
+At a glance
+	
+Task	
+Code-mixed NLP: language identification, normalization, sentiment, emotion, sarcasm, translation
+LLM access	API calls through one provider-agnostic client (Google Gemini, OpenAI, Anthropic)
+Prompt file	prompts.yaml: versioned system prompt, rules, output schema, 5 few-shot examples
+Configuration file	config.yaml: model, decoding, retries, cache, paths, prompt mode
+Interfaces	Streamlit web app, command-line interface, batch CSV processing
+Evaluation	TF-IDF + Logistic Regression baseline vs LLM zero-shot vs LLM few-shot, scored with accuracy and macro-F1
+Reliability	Pydantic schema validation, one self-repair retry, exponential backoff with jitter, SQLite response cache, graceful degradation
+Table of contents
+For evaluators: where to look
+Demo output
+Why Hinglish is hard
+Features
+Architecture and design decisions
+Project structure
+Quick start
+Configuration reference
+Prompt engineering
+Evaluation
+Rubric mapping
+Testing
+Deployment on Replit
+Troubleshooting
+Limitations and ethics
+Future work
+1. For evaluators: where to look
+Required item	Where it is
+Project source code	hinglishlens/ package, app.py
+Prompt file	prompts.yaml
+Configuration file	config.yaml
+LLM API implementation	hinglishlens/llm_client.py (providers, retries), hinglishlens/analyzer.py (validation, repair, post-processing)
+Everything needed to run	requirements.txt, .env.example, data/, .replit
+Evaluation results	results/ and Section 10
+Grading criteria, point by point	Section 11
 
-![HinglishLens Streamlit App Screenshot](https://via.placeholder.com/800x400.png?text=HinglishLens+Streamlit+UI+Demo)
+Fastest way to see it work: follow the three commands in Section 7, then run python -m hinglishlens analyze "your sentence".
 
----
+2. Demo output
 
-## 1. Why Hinglish?
+[!NOTE] The block below illustrates the format of a result. It is built from the annotated few-shot example fs4 in prompts.yaml. Real model outputs can differ slightly, so replace it with your own run's output if you like.
 
-Hinglish represents a pervasive form of **code-mixing** and **code-switching** commonly found across social media platforms, messaging applications, and product reviews in South Asia. Analyzing Hinglish poses significant NLP challenges due to:
-- **Transliteration & Informal Spelling Variants:** Unstandardized phonetical spelling (e.g., *kyaa*, *kya*, *kiya*; *bahut*, *bohot*, *boht*).
-- **Embedded Matrix Languages:** Fluid switching between Hindi discourse markers (*yaar*, *toh*, *ekdum*) and English content words (*delivery*, *match*, *service*).
-- **SMS Shorthand & Slang:** Heavy use of abbreviations (*plz*, *tmrw*, *h*, *kr*, *bje*).
-- **Context-Dependent Word Roles:** Ambiguous tokens whose language depends on contextual usage (e.g., *me* as Hindi *mein* vs. English *myself*).
+Input
 
-Traditional NLP pipelines trained on monolingual English or standard Devanagari Hindi fail significantly on code-mixed corpora. HinglishLens bridges this gap using structured LLM prompting and deterministic linguistic overrides.
+wah bhai wah, 2 ghante wait karwaya aur bola table nahi hai 👏
 
----
+Token-level language tags (HI Hindi, EN English, UNIV language-independent)
 
-## 2. Features
+wah/HI  bhai/HI  wah/HI  ,/UNIV  2/UNIV  ghante/HI  wait/EN  karwaya/HI  aur/HI  bola/HI  table/EN  nahi/HI  hai/HI  👏/UNIV
+Field	Value
+Sentiment	negative (confidence 0.90)
+Sarcasm	yes: praise ("wah bhai wah", clapping) contradicts a long wait and no table
+Emotion	anger
+English translation	"Wow, bro, wow, made me wait 2 hours and then said there's no table 👏"
+Code-Mixing Index (CMI)	18.18
+Language switch points	4
+Tag distribution	HI 9 · EN 2 · NE 0 · UNIV 3 · OTHER 0
 
-- **Token-Level Language Identification (LID):** Classifies every token into `HI` (Hindi), `EN` (English), `NE` (Named Entity), `UNIV` (Language-Independent / Punctuation / Emoji / @mentions / #hashtags), or `OTHER`.
-- **Text Normalization:** Maps spelling variants and SMS shorthand to a canonical Roman Hindi and English form without altering original spacing or sentence structure.
-- **Sentiment & Emotion Analysis:** Predicts author sentiment (`positive`, `negative`, `neutral`) with confidence scores (0.0 to 1.0) and identifies dominant emotions (`joy`, `anger`, `sadness`, `fear`, `surprise`, `disgust`, `neutral`).
-- **Sarcasm Detection:** Detects sarcastic statements where literal wording contradicts intended sentiment (e.g., praise used ironically to complain).
-- **English Machine Translation:** Translates Hinglish input into natural, fluent English preserving tone and named entities.
-- **Computational Code-Mixing Metrics:** Calculates exact Code-Mixing Index (CMI), language switch point counts, and language distribution counts in code.
-- **Multi-Provider LLM SDK Support:** Interoperable with Google Gemini (`google-genai`), OpenAI (`openai`), and Anthropic (`anthropic`).
-- **Resilient Pipeline:** Robust Pydantic JSON schema validation, automatic single self-repair retry, exponential backoff with jitter, SQLite response caching, and thread-pool batch processing.
-- **Full Benchmark Harness:** Automated evaluation comparing LLM Zero-Shot vs. LLM Few-Shot vs. a classical TF-IDF + Logistic Regression baseline.
+Normalization examples
 
----
+Original	Normalized
+kyaa baat hai! mujhe toh bohot pasand aaya yeh phone	kya baat hai! mujhe toh bahut pasand aaya yeh phone
+kal meeting subah 10 bje h, agenda mail kr diya	kal meeting subah 10 baje hai, agenda mail kar diya
+3. Why Hinglish is hard
 
-## 3. Architecture & Data Flow
+Hinglish is the everyday language of Indian social media, chats and product reviews, and it breaks pipelines built for monolingual text.
 
-```mermaid
-flowchart TD
-    Raw["Raw Hinglish Text"] --> Tokenizer["tokenizer.py<br/>regex tokens + spans"]
-    Tokenizer --> PromptLoader["prompt_loader.py<br/>system + few-shot + numbered tokens"]
-    PromptLoader --> CacheCheck{"cache.py<br/>SQLite hit?"}
-    
-    CacheCheck -- Yes --> Validate["JSON extract + Pydantic validate"]
-    CacheCheck -- No --> LLMClient["llm_client.py<br/>retry + backoff"]
-    LLMClient --> Validate
-    
-    Validate -- Invalid --> Repair{"1 Repair Retry,<br/>then Degrade"}
-    Repair -- Retry Success --> PostProcess["Post-process in code:<br/>force UNIV, rebuild normalized text,<br/>CMI, switch points"]
-    Repair -- Failed --> PostProcess
-    Validate -- Valid --> PostProcess
-    
-    PostProcess --> Result["AnalysisResult"]
-    Result --> App["Streamlit App / CLI / Evaluate"]
-```
+Challenge	Example	Why it is difficult
+Transliteration and informal spelling	kya, kyaa, kiya; bahut, bohot, boht	Hindi has no single standard Roman spelling, so the same word appears in many forms
+Code-mixing and code-switching	delivery 3 din late aayi	Hindi function words and English content words alternate inside one sentence
+SMS shorthand	plz, tmrw, h, kr, bje	Abbreviations are ambiguous without context
+Context-dependent language of a word	me = Hindi mein ("in") or English "myself"; to = Hindi toh	Spelling alone cannot decide the language
+Sarcasm	wah bhai wah, 2 ghante wait karwaya	Literal praise carries negative intent
 
-### Design Decisions
+Models trained on clean English or Devanagari Hindi degrade on such text. HinglishLens combines structured LLM prompting with deterministic linguistic rules to handle it.
 
-1. **Pre-tokenization in Code:** The code tokenizes the input text and passes numbered tokens (`0=Aaj 1=ka 2=match`) to the LLM. The LLM only assigns language tags and optional normalized forms by token index. This eliminates token hallucination, ensures exact alignment, and reduces output token usage.
-2. **Compact Output Schema & Span-Preserving Rebuild:** The LLM uses short keys (`i`, `l`, `n`) and omits `n` when the normalized token equals the original text. The full normalized text is rebuilt in code using token character spans, preserving all original whitespace and formatting.
-3. **Deterministic Rules Override:** Non-alphabetic tokens, punctuation, emoji, `@mentions`, and `#hashtags` are automatically forced to `UNIV` in code, guaranteeing zero language tagging errors on language-independent tokens.
-4. **Code-Calculated Metrics:** CMI score, switch points, and tag distributions are calculated deterministically in Python rather than being estimated by the LLM.
+4. Features
+Capability	What it does
+Token-level language identification	Tags every token as HI, EN, NE (named entity), UNIV (punctuation, digits, emoji, @mentions, #hashtags) or OTHER
+Text normalization	Maps spelling variants and SMS shorthand to one canonical Roman form while preserving the original spacing
+Sentiment analysis	positive, negative or neutral, with a confidence score from 0.0 to 1.0
+Emotion detection	joy, anger, sadness, fear, surprise, disgust or neutral
+Sarcasm detection	Sentiment follows the intended meaning, not the literal words
+Machine translation	Natural English that keeps tone and named entities
+Code-mixing metrics	Code-Mixing Index (CMI), switch points and tag distribution, computed in code
+Multi-provider LLM support	Google Gemini (google-genai), OpenAI (openai), Anthropic (anthropic), selected in config.yaml
+Resilient pipeline	Schema validation, self-repair retry, exponential backoff with jitter, SQLite caching, thread-pool batch inference
+Benchmark harness	Baseline vs zero-shot vs few-shot, with confusion matrices and operational statistics
+5. Architecture and design decisions
+5.1 Data flow
+Yes
+No
+Valid
+Invalid
+Raw Hinglish text
+tokenizer.pyregex tokens + characterspans
+prompt_loader.pysystem prompt + few-shot+ numbered tokens
+cache.pySQLite hit?
+JSON extraction +Pydantic validation
+llm_client.pyAPI call + retry + backoff
+Post-processing in codeforce UNIV, rebuildnormalized text,CMI, switch points
+One repair retry,then degrade
+AnalysisResult
+Streamlit app / CLI /evaluation
+5.2 What happens to one request
+Tokenize the text with a Unicode-aware regex and keep each token's character span.
+Build the prompt from prompts.yaml: system prompt, optional few-shot examples, and the numbered token list (0=Aaj 1=ka 2=match ...).
+Check the cache. A hit skips the API call entirely.
+Call the LLM through the provider-agnostic client, with retries on transient errors only.
+Extract and validate the JSON against a Pydantic schema, including a check that every token index appears exactly once.
+Repair or degrade. If validation fails, re-ask once with the exact error. If it still fails, fall back to heuristic tags and flag the result as degraded instead of crashing.
+Post-process in code: force language-independent tokens to UNIV, rebuild the normalized sentence from spans, and compute CMI, switch points and tag counts.
+5.3 Design decisions
+Decision	Why	Benefit
+Code tokenizes, the LLM only labels	The model receives numbered tokens and returns one tag per index	No hallucinated or merged tokens, exact alignment, token-level accuracy is measurable
+Compact output schema	Short keys (i, l, n); n is omitted when the normalized form equals the original	Fewer output tokens, lower latency and cost
+Normalized sentence rebuilt from spans	The LLM never re-emits the full sentence	Original spacing and punctuation are preserved exactly
+Deterministic overrides	Tokens without letters, @mentions and #hashtags are forced to UNIV in code	Zero tagging errors on language-independent tokens
+Metrics computed in code	CMI, switch points and distribution are calculated in Python	Exact, reproducible, free of LLM estimation error
+Prompt and settings kept out of the code	Prompt text only in prompts.yaml, tunables only in config.yaml	Easy to audit, version and tune without touching Python
+Cache key includes prompt version, mode and model	Any change invalidates stale entries automatically	Repeated runs are free and reproducible
+5.4 Code-Mixing Index
 
----
+Treating HI and EN as the two matrix languages, and UNIV, NE and OTHER as language-independent tokens (count u), with n total tokens:
 
-## 4. Quick Start
+CMI = 0                                              if n == u
+CMI = 100 × (1 − max(count_HI, count_EN) / (n − u))  otherwise
 
-### Prerequisites
-Python 3.11+ is recommended.
+A switch point is a change between HI and EN in the token sequence, ignoring language-independent tokens in between.
 
-```bash
-# 1. Clone repository & navigate to directory
+6. Project structure
+hinglishlens/
+├── README.md
+├── config.yaml              ← configuration file
+├── prompts.yaml             ← prompt file
+├── app.py                   ← Streamlit web app
+├── requirements.txt
+├── .env.example             ← API key template (no real keys)
+├── .replit, .streamlit/     ← deployment configuration
+├── hinglishlens/
+│   ├── config.py            ← load and validate config.yaml
+│   ├── tokenizer.py         ← regex tokenizer, span-preserving rebuild
+│   ├── schemas.py           ← Pydantic models
+│   ├── prompt_loader.py     ← builds messages from prompts.yaml
+│   ├── llm_client.py        ← Gemini / OpenAI / Anthropic clients, retry and backoff
+│   ├── cache.py             ← SQLite response cache
+│   ├── analyzer.py          ← core pipeline (single and batch)
+│   ├── cmi.py               ← CMI, switch points, distribution
+│   ├── baseline.py          ← TF-IDF + Logistic Regression
+│   ├── evaluate.py          ← evaluation harness and report writer
+│   └── cli.py               ← command-line interface
+├── data/                    ← train/test sentiment sets, LID gold set, demo samples
+├── results/                 ← committed evaluation outputs
+└── tests/                   ← offline pytest suite
+7. Quick start
+
+Prerequisites: Python 3.11 or newer, and an API key for at least one provider.
+
+bash
+# 1. Get the code
 git clone https://github.com/your-username/hinglishlens.git
 cd hinglishlens
 
-# 2. Create virtual environment & install dependencies
+# 2. Create an environment and install dependencies
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-# 3. Configure environment variables
-cp .env.example .env
-```
+# 3. Add your API key
+cp .env.example .env               # then edit .env
+Provider	Environment variable	Set in config.yaml
+Google Gemini (default)	GEMINI_API_KEY	llm.provider: gemini
+OpenAI	OPENAI_API_KEY	llm.provider: openai
+Anthropic	ANTHROPIC_API_KEY	llm.provider: anthropic
 
-Edit `.env` to set your LLM API key:
-```env
-GEMINI_API_KEY=your_actual_gemini_api_key
-```
+You can also switch provider without editing the file: LLM_PROVIDER=openai python -m hinglishlens analyze "...".
 
-### CLI Usage
-
-```bash
-# Analyze a single sentence
+Command-line interface
+bash
+# Analyze one sentence
 python -m hinglishlens analyze "yaar ye movie bakwaas thi but acting mast thi"
 
-# Analyze with JSON output
+# Full structured result as JSON
 python -m hinglishlens analyze "Aaj ka match toh ekdum zabardast tha" --json
 
-# Run batch processing on a file
+# Batch inference over a file (one sentence per line)
 python -m hinglishlens batch --input data/sample_inputs.txt --output results/batch.csv
 
-# Run evaluation harness
+# Run the evaluation harness
 python -m hinglishlens evaluate --modes zero_shot few_shot --split test
-```
-
-### Running Streamlit Web App
-
-```bash
+Web app
+bash
 streamlit run app.py
-```
 
----
+The app has three tabs: Analyze (colored token chips, sentiment, CMI chart), Batch (CSV upload and download) and Evaluation (saved results and confusion matrices).
 
-## 5. Configuration Reference (`config.yaml`)
+8. Configuration reference
 
-Every hyperparameter and pipeline tunable is centralized in `config.yaml`:
+Every tunable lives in config.yaml. Nothing is hard-coded in Python.
 
-```yaml
+Section	Key settings	Purpose
+llm	provider, models, temperature (0.0), max_output_tokens, timeout_s, json_mode	Which model to call and how it decodes
+llm.retries	max_attempts (4), base_delay_s, max_delay_s, jitter	Exponential backoff for rate limits, timeouts and server errors
+llm	max_repair_attempts (1)	Re-ask once with the validation error if the JSON is invalid
+prompt	file, mode (zero_shot or few_shot)	Which prompt file and prompting strategy to use
+pipeline	max_workers (4), max_input_chars (600)	Batch concurrency and input length cap
+cache	enabled, path	SQLite response cache
+data	train, test, lid_gold, samples	Dataset locations
+evaluation	output_dir, seed (42)	Where reports go and the random seed
+logging	level, file	Log verbosity and destination
+<details> <summary><b>Show the full <code>config.yaml</code></b></summary>
+yaml
 app:
   name: HinglishLens
   version: "1.0.0"
@@ -161,92 +263,122 @@ evaluation:
 logging:
   level: INFO
   file: logs/hinglishlens.log
-```
+</details>
+9. Prompt engineering
 
----
+prompts.yaml holds the system prompt, rules, output schema, user template and five few-shot examples, under an explicit version that is part of the cache key.
 
-## 6. Prompt Engineering (`prompts.yaml`)
+9.1 Techniques used
+Technique	Where in the prompt	Effect
+Role prompting	Opening of the system prompt	Frames the model as a computational linguist for Hinglish
+Explicit label definitions	Tag section for HI, EN, NE, UNIV, OTHER	Removes ambiguity about what each tag means
+Context-over-spelling rule	"Tag by the language the word functions as in this sentence"	Resolves cases like to / toh and me / mein
+Normalization rules with examples	kyaa→kya, bohot→bahut, h→hai, bje→baje, plz→please	Consistent canonical spellings; never translates or changes meaning
+Sarcasm rule	Sentiment section	Sentiment follows intended meaning; sets sarcasm: true
+Tie-break rules	Mixed polarity or purely factual text → neutral	Stable behavior on ambiguous inputs
+Structured output contract	JSON format with one entry per token index	Machine-validated output, no free text
+Token-saving schema	Short keys, optional n	Shorter outputs, faster and cheaper calls
+Few-shot demonstrations	Five annotated examples	Anchors tag boundaries, normalization and sarcasm handling
+9.2 Few-shot examples
+#	Input	Demonstrates
+1	Aaj ka match toh ekdum zabardast tha, Kohli ne kamaal kar diya 🔥	Positive sentiment, named entity (NE), emoji (UNIV)
+2	bhai delivery 3 din late aayi aur packing bhi kharab thi, worst service	Negative complaint, English nouns inside Hindi syntax, digits
+3	kyaa baat hai! mujhe toh bohot pasand aaya yeh phone	Spelling normalization (kyaa→kya, bohot→bahut)
+4	wah bhai wah, 2 ghante wait karwaya aur bola table nahi hai 👏	Sarcasm: praise used to complain
+5	kal meeting subah 10 bje h, agenda mail kr diya	SMS shorthand and a neutral, informational message
+9.3 Zero-shot vs few-shot
 
-`prompts.yaml` houses the system prompt, guidelines, output format rules, and 5 carefully curated few-shot examples covering diverse Hinglish edge cases:
+The same system prompt is used in both modes. zero_shot sends no examples, and few_shot prepends the five examples as user/assistant turns. The mode is a single line in config.yaml (prompt.mode), which makes the ablation in Section 10 a controlled comparison.
 
-- **Tag Definitions:** Defines clear boundaries for `HI`, `EN`, `NE`, `UNIV`, and `OTHER`.
-- **Normalization Rules:** Explicit mapping guidelines for Hindi SMS shorthand (*kyaa* $\rightarrow$ *kya*, *bohot* $\rightarrow$ *bahut*, *h* $\rightarrow$ *hai*, *bje* $\rightarrow$ *baje*) and English shorthand (*plz* $\rightarrow$ *please*, *tmrw* $\rightarrow$ *tomorrow*).
-- **Sarcasm Rule:** Explicitly instructs the LLM that sentiment follows intended author meaning, setting `sarcasm: true` when praise is used ironically to complain.
-- **Few-Shot Examples:**
-  1. *Sports / Praise:* "Aaj ka match toh ekdum zabardast tha, Kohli ne kamaal kar diya 🔥"
-  2. *E-commerce Complaint:* "bhai delivery 3 din late aayi aur packing bhi kharab thi, worst service"
-  3. *Product Review / Shorthand:* "kyaa baat hai! mujhe toh bohot pasand aaya yeh phone"
-  4. *Sarcasm / Service Complaint:* "wah bhai wah, 2 ghante wait karwaya aur bola table nahi hai 👏"
-  5. *Neutral Scheduling:* "kal meeting subah 10 bje h, agenda mail kr diya"
+10. Evaluation
+10.1 Protocol
+Item	Detail
+Sentiment test set	data/sentiment_test.csv: 60 texts, 20 per class
+Language-ID gold set	data/lid_gold.jsonl: 25 sentences with token-aligned gold tags
+Systems compared	TF-IDF + Logistic Regression baseline, LLM zero-shot, LLM few-shot
+Metrics	Accuracy, macro-F1, per-class F1, confusion matrix, token accuracy for language ID
+Leakage control	The prompt was tuned only on the training split. Few-shot examples are checked by a unit test not to appear in the test set
+Reproducibility	Fixed seed (42), temperature 0.0, cached responses
 
----
+Baseline: character n-gram TF-IDF (2 to 5, char_wb, sublinear term frequency) feeding a class-balanced Logistic Regression.
 
-## 7. Benchmark Evaluation Results
+10.2 Sentiment classification
+System	Accuracy	Macro-F1	Positive F1	Negative F1	Neutral F1
+TF-IDF + Logistic Regression	0.8500	0.8500	0.8649	0.7805	0.9048
+LLM, zero-shot	TBD	TBD	TBD	TBD	TBD
+LLM, few-shot	TBD	TBD	TBD	TBD	TBD
 
-Evaluation run on `data/sentiment_test.csv` (60 samples) and `data/lid_gold.jsonl` (25 token-aligned sentences):
+[!WARNING] The LLM rows are pending. Run python -m hinglishlens evaluate --modes zero_shot few_shot with an API key, then copy the numbers from results/report.md. Do not submit with TBD cells.
 
-### 7.1 Sentiment Classification Performance
+10.3 Token-level language identification
+System	Token accuracy	HI F1	EN F1	NE F1	UNIV F1	OTHER F1
+LLM, zero-shot	TBD	TBD	TBD	TBD	TBD	TBD
+LLM, few-shot	TBD	TBD	TBD	TBD	TBD	TBD
+10.4 Operational statistics
+Mode	API calls	Cache hits	Mean latency	p95 latency	Input tokens	Output tokens	Repaired	Degraded
+zero-shot	TBD	TBD	TBD	TBD	TBD	TBD	TBD	TBD
+few-shot	TBD	TBD	TBD	TBD	TBD	TBD	TBD	TBD
+10.5 Error analysis
 
-| System | Accuracy | Macro F1 | Positive F1 | Negative F1 | Neutral F1 |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **TF-IDF + LogisticRegression** | **0.8500** | **0.8500** | **0.8649** | **0.7805** | **0.9048** |
-| **LLM (zero_shot)** | TBD | TBD | TBD | TBD | TBD |
-| **LLM (few_shot)** | TBD | TBD | TBD | TBD | TBD |
+Add three to five real misclassified examples from results/predictions_*.csv after the evaluation run.
 
-> *Note: LLM metrics are marked TBD pending evaluation execution with an active API key (`python -m hinglishlens evaluate`).*
+Input	Gold	Predicted	Likely reason
+TBD	TBD	TBD	TBD
+10.6 Artifacts
 
-### 7.2 Language Identification (LID) Performance
+Each evaluation run writes results/metrics.json, results/report.md, results/predictions_<system>.csv and results/confusion_<system>.png.
 
-| System | Token Accuracy | HI F1 | EN F1 | NE F1 | UNIV F1 | OTHER F1 |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **LLM (zero_shot)** | TBD | TBD | TBD | TBD | TBD | TBD |
-| **LLM (few_shot)** | TBD | TBD | TBD | TBD | TBD | TBD |
+[!NOTE] The datasets are small and self-constructed, so treat the numbers as indicative rather than as a benchmark. A strong baseline score on a small, templated set is expected, and the more informative comparison is where each system fails (sarcasm, unseen spellings, heavy English mixing).
 
----
+11. Rubric mapping
+Evaluation criterion	How the project addresses it	Files
+Quality and efficiency of the code	Modular package, type hints, Pydantic models, exponential backoff with jitter, SQLite response caching, thread-pool batch inference, compact output schema, offline pytest suite, ruff-clean	hinglishlens/, tests/
+Functionality and implementation of the LLM API	One abstract client over Gemini, OpenAI and Anthropic, native JSON mode where available, robust JSON extraction, schema validation, self-repair retry, graceful degraded mode	llm_client.py, analyzer.py, schemas.py
+Effectiveness and efficiency of the prompt file	Versioned prompts.yaml, pre-tokenization, explicit tag and normalization rules, sarcasm and tie-break rules, five few-shot examples, measured zero-shot vs few-shot ablation	prompts.yaml, prompt_loader.py, evaluate.py
+Overall project quality and execution	Baseline comparison, reproducible evaluation CLI, committed results, interactive app, deployment configuration, documentation	baseline.py, evaluate.py, results/, app.py, .replit
+12. Testing
 
-## 8. Rubric Mapping
+The suite runs offline with a fake LLM client, so it needs no API key and finishes in seconds.
 
-| Evaluation Criteria | Implementation & Files |
-| :--- | :--- |
-| **Code Quality & Efficiency** | Modular package, typed Pydantic models (`schemas.py`), tenacity exponential backoff/jitter (`llm_client.py`), SQLite cache (`cache.py`), ThreadPoolExecutor batching (`analyzer.py`), 38 fast offline pytest unit tests (`tests/`), clean `ruff` linting. |
-| **Functionality & LLM Implementation** | Abstract `LLMClient` supporting Gemini, OpenAI, and Anthropic; JSON-mode support; robust `extract_json`; self-repair retry; graceful degraded mode fallback. |
-| **Prompt File Effectiveness** | Centralized `prompts.yaml`; pre-tokenization in code; compact output schema (`n` omitted when unchanged); comprehensive few-shot examples covering sarcasm, SMS shorthand, and named entities. |
-| **Overall Execution & Rigor** | Honest evaluation against TF-IDF baseline (`baseline.py`), reproducible evaluation CLI (`evaluate.py`), committed results directory (`results/`), interactive Streamlit UI (`app.py`), and Replit deployment readiness (`.replit`). |
+bash
+python -m pytest -q        # unit tests
+python -m ruff check .     # lint
+Test module	Verifies
+test_tokenizer.py	Spans reconstruct the text; emoji, hashtags, mentions, apostrophes and Devanagari; spacing preserved on rebuild
+test_cmi.py	CMI and switch-point edge cases
+test_schemas.py	Rejects missing or duplicate token indices, invalid labels, confidence outside 0 to 1
+test_prompt_loader.py	Few-shot tokens match the tokenizer; no leakage into the test set
+test_cache.py	Round trip, key invalidation on prompt version or mode, corrupted entries ignored
+test_llm_client_retry.py	Transient errors retried, permanent errors not
+test_analyzer.py	Success, fenced JSON, repair path, degraded path, batch order, empty input
+test_baseline.py	Baseline trains and predicts
+13. Deployment on Replit
+In Replit choose Create App → Import from GitHub and paste the repository URL.
+Open Secrets and add your key, for example GEMINI_API_KEY. For another provider also add LLM_PROVIDER=openai or anthropic.
+Press Run. The .replit file starts streamlit run app.py on port 8501.
+To publish, press Deploy (Autoscale). If websockets misbehave, switch to a Reserved VM.
 
----
+[!NOTE] Replit deployments may require a paid plan. If unavailable, the Run URL or Streamlit Community Cloud works as a demo. API keys live only in Secrets or .env, never in the repository.
 
-## 9. Limitations & Ethics
+14. Troubleshooting
+Symptom	Cause and fix
+"Missing API key" error	Set the matching variable (GEMINI_API_KEY, OPENAI_API_KEY or ANTHROPIC_API_KEY) in .env or Replit Secrets
+Frequent rate-limit errors	Lower pipeline.max_workers in config.yaml; retries with backoff are already automatic
+"Model not found"	Update the model name under llm.models to one available to your account
+App shows no provider	No API key is set in the environment
+Results look stale after editing the prompt	Bump version in prompts.yaml; it is part of the cache key. Or delete .cache/
+ModuleNotFoundError: hinglishlens	Run commands from the repository root
+15. Limitations and ethics
+Small, self-constructed datasets. Results are indicative, not a published benchmark.
+Subjective sarcasm labels. Sarcasm depends on pragmatic and social context, and annotators can disagree.
+LLM nondeterminism. Even at temperature 0.0, provider updates can change outputs slightly. The cache and fixed prompt version help reproducibility.
+Possible bias. LLMs may carry cultural or dialect biases that affect sentiment and emotion judgments.
+Privacy. Inputs are sent to the selected LLM provider's API. Do not submit personal or confidential text. No inputs are stored beyond the local response cache, which is excluded from version control.
+Cost. API calls consume quota. Caching and the compact schema reduce usage.
+16. Future work
+Devanagari-to-Roman transliteration as a pre-processing step
+Evaluation on a public code-mixed benchmark such as SentiMix
+Calibration of confidence scores
+A fine-tuned small open model for offline inference
 
-- **Dataset Size:** The included evaluation datasets are self-constructed for course demonstration.
-- **Subjective Sarcasm:** Sarcasm labels depend on pragmatic interpretations of social context.
-- **LLM Nondeterminism:** Despite setting `temperature: 0.0`, API provider updates may cause slight variations.
-- **Privacy & Data Security:** No user inputs or private data are logged or stored externally.
-
----
-
-## 10. Replit Deployment
-
-To deploy HinglishLens on Replit:
-1. Import repository from GitHub.
-2. Add your API key in **Replit Secrets** (e.g., `GEMINI_API_KEY=your_key`).
-3. Click **Run** or deploy using the configured `.replit` autoscaling deployment target.
-
----
-
-## 11. Testing & Project Verification
-
-```bash
-# Run pytest offline suite (38 unit tests)
-python -m pytest -q
-
-# Run ruff code quality check
-python -m ruff check .
-```
-
----
-
-## 12. Future Work
-
-- Expansion to fine-tuned local small models (e.g., Llama-3-8B / Qwen-2.5) for offline inference.
-- Integration of Devanagari-to-Roman transliteration pre-processing modules.
-- Calibration of sentiment confidence probability scores.
+Author: Your name · Roll number · Course name
