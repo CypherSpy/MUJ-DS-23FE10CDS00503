@@ -74,6 +74,16 @@ def get_base_config() -> Config:
     return load_config()
 
 
+@st.cache_resource
+def get_analyzer(provider: str, mode: str, enable_cache: bool) -> HinglishAnalyzer:
+    """Instantiate and cache HinglishAnalyzer resource."""
+    cfg = load_config()
+    cfg.llm.provider = provider
+    cfg.prompt.mode = mode
+    cfg.cache.enabled = enable_cache
+    return HinglishAnalyzer(config=cfg)
+
+
 def render_token_chips(tokens) -> str:
     """Render HTML for language-colored token chips with tooltip for normalized forms."""
     chips_html = []
@@ -188,7 +198,7 @@ def main():
             else:
                 with st.spinner("Analyzing Hinglish text with LLM pipeline..."):
                     try:
-                        analyzer = HinglishAnalyzer(config=cfg)
+                        analyzer = get_analyzer(selected_provider, prompt_mode, enable_cache)
                         res = analyzer.analyze(input_text)
 
                         if res.error and "empty input" in res.error:
@@ -336,7 +346,7 @@ def main():
             else:
                 progress_bar = st.progress(0, text="Processing batch items...")
                 try:
-                    analyzer = HinglishAnalyzer(config=cfg)
+                    analyzer = get_analyzer(selected_provider, prompt_mode, enable_cache)
 
                     def update_progress(done, total):
                         try:
