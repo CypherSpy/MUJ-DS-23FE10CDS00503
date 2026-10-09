@@ -14,15 +14,15 @@
 
 | System | Token Accuracy | HI F1 | EN F1 | NE F1 | UNIV F1 | OTHER F1 |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **LLM (zero_shot)** | 0.9603 | 0.9735 | 0.9899 | 0.8571 | 1.0 | 0.0 |
+| **LLM (zero_shot)** | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 0.0 |
 | **LLM (few_shot)** | 1.0 | 1.0 | 1.0 | 1.0 | 1.0 | 0.0 |
 
 ## 3. Operational & Cost Statistics
 
 | Mode | Calls | Cache Hits | Mean Latency (ms) | P95 Latency (ms) | Input Tokens | Output Tokens | Repaired | Degraded |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **zero_shot** | 5 | 5 | 0.98 | 1.15 | 4162 | 1008 | 0 | 0 |
-| **few_shot** | 5 | 2 | 27454.34 | 68335.98 | 10582 | 639 | 0 | 0 |
+| **zero_shot** | 5 | 5 | 1.93 | 3.65 | 4162 | 1008 | 0 | 0 |
+| **few_shot** | 5 | 5 | 1.81 | 2.25 | 10582 | 639 | 0 | 0 |
 
 ---
 **Note:** If LLM cells show `TBD`, please set your API key environment variable (`export GEMINI_API_KEY=...`) and execute:
