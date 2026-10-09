@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Streamlit App",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "streamlit",
+      "args": [
+        "run",
+        "${workspaceFolder}/app.py"
+      ],
+      "jinja": true
+    },
+    {
+      "name": "CLI Analyze",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "hinglishlens",
+      "args": [
+        "analyze",
+        "yaar ye movie bakwaas thi but acting mast thi"
+      ]
+    },
+    {
+      "name": "Pytest All Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": [
+        "-q"
+      ]
+    }
+  ]
+}
